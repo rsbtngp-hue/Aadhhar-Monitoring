@@ -373,6 +373,7 @@
           const [aadhaarDailyToDate, setAadhaarDailyToDate] = useState(getLocalTodayKey);
           const [aadhaarDailyDivision, setAadhaarDailyDivision] = useState('ALL');
           const [aadhaarDailySubDivision, setAadhaarDailySubDivision] = useState('ALL');
+          const [aadhaarSubmissionFilter, setAadhaarSubmissionFilter] = useState('ALL');
           const [expandedRows, setExpandedRows] = useState(new Set());
           const [currentPage, setCurrentPage] = useState(1);
           const rowsPerPage = 12;
@@ -1003,7 +1004,7 @@
           const openDailyStatusCenterList = (status) => {
             const rows = [];
             aadhaarDailyReport.forEach((d) => d.subDivisions.forEach((sd) => sd.centers.forEach((c) => {
-              const matches = status === 'Active' ? c.active : c.inactive;
+              const matches = status === 'Active' ? c.active : status === 'Inactive' ? c.inactive : status === 'Submitted' ? c.submitted : !c.submitted;
               if (!matches) return;
               rows.push({
                 officeName: c.officeName,
@@ -1016,8 +1017,9 @@
               });
             })));
             rows.sort((a,b) => a.division.localeCompare(b.division) || a.subDiv.localeCompare(b.subDiv) || a.officeName.localeCompare(b.officeName));
-            if (status === 'Active') setActiveCenterModal({ title: 'Active Aadhaar Centers', rows });
-            else setInactiveCenterModal({ title: 'Inactive Aadhaar Centers', rows });
+            if (status === 'Active' || status === 'Submitted' || status === 'Not Submitted') {
+              setActiveCenterModal({ title: status === 'Submitted' ? 'Aadhaar Daily Figure Submitted' : status === 'Not Submitted' ? 'Aadhaar Daily Figure Not Submitted' : 'Active Aadhaar Centers', rows });
+            } else setInactiveCenterModal({ title: 'Inactive Aadhaar Centers', rows });
           };
 
           const openAadhaarCenterDailyDetails = (center) => {
@@ -1161,6 +1163,7 @@
                 officeName: String(o.name || 'Unnamed Aadhaar Center').trim(),
                 officeId: String(o.id || '').trim(),
                 kits: Math.max(0, parseNum(o.kits) || 0),
+                submitted: false,
                 active: false,
                 inactive: false,
                 inactiveReason: '',
@@ -1179,6 +1182,7 @@
               const centerKey = String(master.id || '').trim() || norm(master.name);
               const c = centerMap.get(centerKey);
               if (!c) return;
+              c.submitted = true;
 
               const status = String(r[9] ?? '').trim();
               const inactive = /\binactive\b/i.test(status);
@@ -1236,11 +1240,13 @@
 
           const aadhaarDailyReportTotals = useMemo(() => {
             return aadhaarDailyReport.reduce((t, r) => ({
-              kits:t.kits+r.kits, active:t.active+r.active, inactive:t.inactive+r.inactive,
+              kits:t.kits+r.kits,
+              submitted:t.submitted + r.subDivisions.reduce((n, sd) => n + sd.centers.filter(c => c.submitted).length, 0),
+              notSubmitted:t.notSubmitted + r.subDivisions.reduce((n, sd) => n + sd.centers.filter(c => !c.submitted).length, 0), active:t.active+r.active, inactive:t.inactive+r.inactive,
               enrol:t.enrol+r.enrol, update:t.update+r.update, total:t.total+r.total,
               revenue:t.revenue+r.revenue, onlinePay:t.onlinePay+r.onlinePay, mbuCamps:t.mbuCamps+r.mbuCamps,
               mbuEnrol:t.mbuEnrol+r.mbuEnrol, mbuUpdate:t.mbuUpdate+r.mbuUpdate, mbuTotal:t.mbuTotal+r.mbuTotal
-            }), { kits:0, active:0, inactive:0, enrol:0, update:0, total:0, revenue:0, onlinePay:0, mbuCamps:0, mbuEnrol:0, mbuUpdate:0, mbuTotal:0 });
+            }), { kits:0, submitted:0, notSubmitted:0, active:0, inactive:0, enrol:0, update:0, total:0, revenue:0, onlinePay:0, mbuCamps:0, mbuEnrol:0, mbuUpdate:0, mbuTotal:0 });
           }, [aadhaarDailyReport]);
 
           const calculatedDivisionTargets = useMemo(() => {
@@ -1657,19 +1663,22 @@
                           </div>
 
                           <div className="px-5 py-3 bg-slate-50 border-b border-slate-200">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                               <div><label className="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1">From Date</label><input type="date" value={aadhaarDailyFromDate} max={aadhaarDailyToDate || undefined} onChange={(e) => setAadhaarDailyFromDate(e.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-200" /></div>
                               <div><label className="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1">To Date</label><input type="date" value={aadhaarDailyToDate} min={aadhaarDailyFromDate || undefined} onChange={(e) => setAadhaarDailyToDate(e.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-200" /></div>
                               <div><label className="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1">Division</label><select value={aadhaarDailyDivision} onChange={(e) => { setAadhaarDailyDivision(e.target.value); setAadhaarDailySubDivision('ALL'); }} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-200"><option value="ALL">All Divisions</option>{aadhaarDailyReportFilters.divisions.map((d) => <option key={`daily-div-${d}`} value={d}>{d}</option>)}</select></div>
                               <div><label className="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1">Sub Division</label><select value={aadhaarDailySubDivision} onChange={(e) => setAadhaarDailySubDivision(e.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-200"><option value="ALL">All Sub Divisions</option>{aadhaarDailyReportFilters.subDivisions.map((sd) => <option key={`daily-sub-${sd}`} value={sd}>{sd}</option>)}</select></div>
+                              <div><label className="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1">Daily Figure Submission</label><select value={aadhaarSubmissionFilter} onChange={(e) => setAadhaarSubmissionFilter(e.target.value)} className="w-full rounded-lg border border-indigo-200 bg-white px-3 py-2 text-xs font-bold text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-200"><option value="ALL">All Aadhaar Centres</option><option value="SUBMITTED">Submitted</option><option value="PENDING">Not Submitted</option></select></div>
                             </div>
-                            <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] text-slate-500"><span className="px-2 py-1 rounded-md bg-white border border-slate-200">Report Period: <strong className="text-slate-700">{formatDateSafe(aadhaarDailyFromDate || aadhaarStatusDate) || 'Latest'} to {formatDateSafe(aadhaarDailyToDate || aadhaarStatusDate) || 'Latest'}</strong></span>{(aadhaarDailyFromDate || aadhaarDailyToDate || aadhaarDailyDivision !== 'ALL' || aadhaarDailySubDivision !== 'ALL') && <button type="button" onClick={() => { setAadhaarDailyFromDate(''); setAadhaarDailyToDate(''); setAadhaarDailyDivision('ALL'); setAadhaarDailySubDivision('ALL'); setExpandedDailyAadhaarDivs(new Set()); setExpandedDailyAadhaarSubDivs(new Set()); }} className="px-2.5 py-1 rounded-md bg-white border border-slate-300 text-slate-600 font-bold hover:bg-slate-100">Reset Filters</button>}</div>
+                            <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] text-slate-500"><span className="px-2 py-1 rounded-md bg-white border border-slate-200">Report Period: <strong className="text-slate-700">{formatDateSafe(aadhaarDailyFromDate || aadhaarStatusDate) || 'Latest'} to {formatDateSafe(aadhaarDailyToDate || aadhaarStatusDate) || 'Latest'}</strong></span>{(aadhaarDailyFromDate || aadhaarDailyToDate || aadhaarDailyDivision !== 'ALL' || aadhaarDailySubDivision !== 'ALL') && <button type="button" onClick={() => { setAadhaarDailyFromDate(''); setAadhaarDailyToDate(''); setAadhaarDailyDivision('ALL'); setAadhaarDailySubDivision('ALL'); setAadhaarSubmissionFilter('ALL'); setExpandedDailyAadhaarDivs(new Set()); setExpandedDailyAadhaarSubDivs(new Set()); }} className="px-2.5 py-1 rounded-md bg-white border border-slate-300 text-slate-600 font-bold hover:bg-slate-100">Reset Filters</button>}</div>
                           </div>
 
                           <div className="px-5 py-3 bg-white border-b border-slate-200">
                             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
                               {[
                                 {label:'Total Center', value:aadhaarDailyReportTotals.kits, sub:<><button type="button" onClick={() => openDailyStatusCenterList('Active')} className="clickable-report-value text-emerald-700 hover:text-emerald-900">Active {aadhaarDailyReportTotals.active.toLocaleString('en-IN')}</button><button type="button" onClick={() => openDailyStatusCenterList('Inactive')} className="clickable-report-value text-rose-700 hover:text-rose-900">Inactive {aadhaarDailyReportTotals.inactive.toLocaleString('en-IN')}</button></>, cls:'border-indigo-200 bg-indigo-50/60'},
+                                {label:'Offices Daily Figure Submitted', value:aadhaarDailyReportTotals.submitted, sub:<button type="button" onClick={() => openDailyStatusCenterList('Submitted')} className="clickable-report-value text-emerald-700 hover:text-emerald-900">View submitted centre list ↗</button>, cls:'border-emerald-300 bg-gradient-to-br from-emerald-50 to-teal-100'},
+                                {label:'Offices Daily Figure Not Submitted', value:aadhaarDailyReportTotals.notSubmitted, sub:<button type="button" onClick={() => openDailyStatusCenterList('Not Submitted')} className="clickable-report-value text-rose-700 hover:text-rose-900">View pending centre list ↗</button>, cls:'border-rose-300 bg-gradient-to-br from-rose-50 to-orange-100'},
                                 {label:'Total Transactions', value:aadhaarDailyReportTotals.total, sub:<><span className="text-slate-600">Enrolment {aadhaarDailyReportTotals.enrol.toLocaleString('en-IN')}</span><span className="text-slate-600">Updation {aadhaarDailyReportTotals.update.toLocaleString('en-IN')}</span></>, cls:'border-amber-200 bg-amber-50/60'},
                                 {label:'Aadhar Revenue', value:`₹${aadhaarDailyReportTotals.revenue.toLocaleString('en-IN')}`, sub:'Aadhaar Revenue', cls:'border-emerald-200 bg-emerald-50/60'},
                                 {label:'Online Payment Transactions', value:aadhaarDailyReportTotals.onlinePay, sub:'Online Payment', cls:'border-sky-200 bg-sky-50/60'},
@@ -1691,7 +1700,7 @@
                                     <tr className="bg-sky-50/60 hover:bg-sky-100/70 cursor-pointer font-semibold" onClick={(e) => { e.stopPropagation(); const key=`${d.division}||${sd.subDivision}`; setExpandedDailyAadhaarSubDivs(prev => { const n=new Set(prev); n.has(key)?n.delete(key):n.add(key); return n; }); }}>
                                       <td className="py-2.5 px-3 pl-9 sticky left-0 bg-sky-50/90 text-slate-800"><span className="inline-flex items-center gap-2"><span className="text-sky-700">{expandedDailyAadhaarSubDivs.has(`${d.division}||${sd.subDivision}`) ? '▼' : '▶'}</span>Sub Division: {sd.subDivision}</span></td><td className="py-2.5 px-3 text-center">{sd.kits.toLocaleString('en-IN')}</td><td className="py-2.5 px-3 text-center text-emerald-700">{sd.active.toLocaleString('en-IN')}</td><td className="py-2.5 px-3 text-center text-rose-700"><button type="button" onClick={(e) => { e.stopPropagation(); let rows=[]; sd.centers.forEach(c=>{ if(c.inactive) rows.push({officeName:c.officeName,officeId:c.officeId,division:c.division,subDiv:c.subDivision,status:'Inactive',inactiveDate:c.inactiveDate || '',reason:c.inactiveReason || ''}); }); setInactiveCenterModal({title:`Inactive Aadhaar Centers — ${sd.subDivision}`,rows}); }} className="clickable-report-value">{sd.inactive.toLocaleString('en-IN')}</button></td><td className="py-2.5 px-3 text-right">{sd.enrol.toLocaleString('en-IN')}</td><td className="py-2.5 px-3 text-right">{sd.update.toLocaleString('en-IN')}</td><td className="py-2.5 px-3 text-right font-bold">{sd.total.toLocaleString('en-IN')}</td><td className="py-2.5 px-3 text-right">₹{sd.revenue.toLocaleString('en-IN')}</td><td className="py-2.5 px-3 text-right">{sd.onlinePay.toLocaleString('en-IN')}</td><td className="py-2.5 px-3 text-right">{sd.mbuCamps.toLocaleString('en-IN')}</td><td className="py-2.5 px-3 text-right">{sd.mbuEnrol.toLocaleString('en-IN')}</td><td className="py-2.5 px-3 text-right">{sd.mbuUpdate.toLocaleString('en-IN')}</td><td className="py-2.5 px-3 text-right font-bold">{sd.mbuTotal.toLocaleString('en-IN')}</td>
                                     </tr>
-                                    {expandedDailyAadhaarSubDivs.has(`${d.division}||${sd.subDivision}`) && sd.centers.map((c) => <tr key={`daily-center-${c.centerKey}`} className={`hover:bg-emerald-50/60 ${c.inactive ? 'bg-rose-50/50' : 'bg-white'}`}>
+                                    {expandedDailyAadhaarSubDivs.has(`${d.division}||${sd.subDivision}`) && sd.centers.filter(c => aadhaarSubmissionFilter === 'ALL' || (aadhaarSubmissionFilter === 'SUBMITTED' ? c.submitted : !c.submitted)).map((c) => <tr key={`daily-center-${c.centerKey}`} className={`hover:bg-emerald-50/60 ${c.inactive ? 'bg-rose-50/50' : 'bg-white'}`}>
                                       <td className="py-2.5 px-3 pl-16 sticky left-0 bg-inherit"><span className="inline-flex items-center gap-2"><span className="text-slate-400">└</span><button type="button" className={`font-semibold text-left underline-offset-2 hover:underline ${c.inactive ? 'text-rose-700' : 'text-slate-800'}`} onClick={(e) => { e.stopPropagation(); openAadhaarCenterDailyDetails(c); }}>{c.officeName}</button>{c.inactive && <span className="px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[8px] font-extrabold">INACTIVE</span>}</span></td><td className="py-2.5 px-3 text-center text-indigo-700">{c.kits.toLocaleString('en-IN')}</td><td className="py-2.5 px-3 text-center text-emerald-700">{c.active ? '1' : '0'}</td><td className="py-2.5 px-3 text-center text-rose-700">{c.inactive ? '1' : '0'}</td><td className="py-2.5 px-3 text-right">{c.enrol.toLocaleString('en-IN')}</td><td className="py-2.5 px-3 text-right">{c.update.toLocaleString('en-IN')}</td><td className="py-2.5 px-3 text-right font-bold">{c.total.toLocaleString('en-IN')}</td><td className="py-2.5 px-3 text-right">₹{c.revenue.toLocaleString('en-IN')}</td><td className="py-2.5 px-3 text-right">{c.onlinePay.toLocaleString('en-IN')}</td><td className="py-2.5 px-3 text-right">{c.mbuCamps.toLocaleString('en-IN')}</td><td className="py-2.5 px-3 text-right">{c.mbuEnrol.toLocaleString('en-IN')}</td><td className="py-2.5 px-3 text-right">{c.mbuUpdate.toLocaleString('en-IN')}</td><td className="py-2.5 px-3 text-right font-bold">{c.mbuTotal.toLocaleString('en-IN')}</td>
                                     </tr>)}
                                   </React.Fragment>)}
@@ -2186,7 +2195,7 @@
                 <div className="fixed inset-0 z-[75] flex items-center justify-center bg-slate-950/55 backdrop-blur-sm p-4 overflow-y-auto">
                   <div className="bg-white rounded-2xl shadow-2xl border border-emerald-200 w-full max-w-5xl max-h-[90vh] overflow-hidden">
                     <div className="px-5 py-4 bg-gradient-to-r from-emerald-50 via-white to-slate-50 border-b border-emerald-100 flex items-center justify-between gap-3">
-                      <div><h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2"><CheckCircle className="w-5 h-5 text-emerald-600" />{activeCenterModal.title}</h3><p className="text-xs text-slate-500 mt-1">Active Aadhaar centres for the selected report date/filter.</p></div>
+                      <div><h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2"><CheckCircle className="w-5 h-5 text-emerald-600" />{activeCenterModal.title}</h3><p className="text-xs text-slate-500 mt-1">Aadhaar centre report for the selected date range and filters.</p></div>
                       <div className="flex items-center gap-2"><ReportExportButtons tableId="active-centers-table" title={activeCenterModal.title} reportPeriod={reportPeriodLabel} /><button type="button" onClick={() => setActiveCenterModal(null)} className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-white border border-transparent hover:border-slate-200"><X className="w-5 h-5" /></button></div>
                     </div>
                     <div className="p-4 overflow-auto max-h-[68vh]">
@@ -2203,7 +2212,7 @@
                         </table>
                       )}
                     </div>
-                    <div className="px-5 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between"><span className="text-xs font-semibold text-slate-600">Total active centres: {activeCenterModal.rows.length}</span><button type="button" onClick={() => setActiveCenterModal(null)} className="px-4 py-1.5 rounded-lg bg-slate-800 text-white text-xs font-bold hover:bg-slate-900">Close</button></div>
+                    <div className="px-5 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between"><span className="text-xs font-semibold text-slate-600">Total centres: {activeCenterModal.rows.length}</span><button type="button" onClick={() => setActiveCenterModal(null)} className="px-4 py-1.5 rounded-lg bg-slate-800 text-white text-xs font-bold hover:bg-slate-900">Close</button></div>
                   </div>
                 </div>
               )}
@@ -2545,7 +2554,7 @@
                                         type="url"
                                         value={url}
                                         onChange={e => setUrl(e.target.value)}
-                                        placeholder="https://script.google.com/macros/s/XXXXXXXX/exec"
+                                        placeholder="https://script.google.com/macros/s/AKfycbzLvty_jqHrwi-zv5QW2YnKszQYbnFA-uNlvfH2OE3XdQQs6A0uZ2ObpBnh7kbl8T8h6Q/exec"
                                         className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-xs font-mono text-slate-800"
                                     />
                                     <p className="text-[10px] text-slate-500 mt-1.5">Use the deployed <strong>/exec</strong> URL. The dashboard adds <strong>?action=getData</strong> automatically when needed.</p>

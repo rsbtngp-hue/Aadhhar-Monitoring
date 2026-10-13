@@ -1674,17 +1674,19 @@
                           </div>
 
                           <div className="px-5 py-3 bg-white border-b border-slate-200">
-                            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                               {[
-                                {label:'Total Center', value:aadhaarDailyReportTotals.kits, sub:<><button type="button" onClick={() => openDailyStatusCenterList('Active')} className="clickable-report-value text-emerald-700 hover:text-emerald-900">Active {aadhaarDailyReportTotals.active.toLocaleString('en-IN')}</button><button type="button" onClick={() => openDailyStatusCenterList('Inactive')} className="clickable-report-value text-rose-700 hover:text-rose-900">Inactive {aadhaarDailyReportTotals.inactive.toLocaleString('en-IN')}</button></>, cls:'border-indigo-200 bg-indigo-50/60'},
-                                {label:'Offices Daily Figure Submitted', value:aadhaarDailyReportTotals.submitted, sub:<button type="button" onClick={() => openDailyStatusCenterList('Submitted')} className="clickable-report-value text-emerald-700 hover:text-emerald-900">View submitted centre list ↗</button>, cls:'border-emerald-300 bg-gradient-to-br from-emerald-50 to-teal-100'},
-                                {label:'Offices Daily Figure Not Submitted', value:aadhaarDailyReportTotals.notSubmitted, sub:<button type="button" onClick={() => openDailyStatusCenterList('Not Submitted')} className="clickable-report-value text-rose-700 hover:text-rose-900">View pending centre list ↗</button>, cls:'border-rose-300 bg-gradient-to-br from-rose-50 to-orange-100'},
-                                {label:'Total Transactions', value:aadhaarDailyReportTotals.total, sub:<><span className="text-slate-600">Enrolment {aadhaarDailyReportTotals.enrol.toLocaleString('en-IN')}</span><span className="text-slate-600">Updation {aadhaarDailyReportTotals.update.toLocaleString('en-IN')}</span></>, cls:'border-amber-200 bg-amber-50/60'},
-                                {label:'Aadhar Revenue', value:`₹${aadhaarDailyReportTotals.revenue.toLocaleString('en-IN')}`, sub:'Aadhaar Revenue', cls:'border-emerald-200 bg-emerald-50/60'},
-                                {label:'Online Payment Transactions', value:aadhaarDailyReportTotals.onlinePay, sub:'Online Payment', cls:'border-sky-200 bg-sky-50/60'},
-                                {label:'Total MBU Camp Conducted', value:aadhaarDailyReportTotals.mbuCamps, sub:'MBU Camps', cls:'border-violet-200 bg-violet-50/60'},
-                                {label:'MBU Camp Total Transaction', value:aadhaarDailyReportTotals.mbuTotal, sub:<><span className="text-slate-600">Enrolment {aadhaarDailyReportTotals.mbuEnrol.toLocaleString('en-IN')}</span><span className="text-slate-600">Updation {aadhaarDailyReportTotals.mbuUpdate.toLocaleString('en-IN')}</span></>, cls:'border-rose-200 bg-rose-50/60'}
-                              ].map((k, i) => <div key={i} className={`aadhaar-daily-kpi-card rounded-xl border p-3 min-w-0 ${k.cls}`}><div className="text-[9px] font-extrabold uppercase tracking-wide text-slate-500 truncate">{k.label}</div><div className="text-xl font-black text-slate-900 mt-1 truncate">{typeof k.value === 'number' ? k.value.toLocaleString('en-IN') : k.value}</div><div className="mt-1 text-[9px] font-bold flex flex-wrap gap-x-2 gap-y-0.5">{Array.isArray(k.sub) ? k.sub : k.sub}</div></div>)}
+                                {label:'Total Aadhaar Centers', value:aadhaarDailyReportTotals.kits, sub:'All mapped Aadhaar centres', cls:'border-indigo-300 bg-gradient-to-br from-indigo-50 to-blue-100'},
+                                {label:'Active Center', value:aadhaarDailyReportTotals.active, sub:<button type="button" onClick={() => openDailyStatusCenterList('Active')} className="clickable-report-value text-emerald-700 hover:text-emerald-900">View active centre list ↗</button>, cls:'border-emerald-300 bg-gradient-to-br from-emerald-50 to-green-100'},
+                                {label:'Inactive Center', value:aadhaarDailyReportTotals.inactive, sub:<button type="button" onClick={() => openDailyStatusCenterList('Inactive')} className="clickable-report-value text-rose-700 hover:text-rose-900">View inactive centre list ↗</button>, cls:'border-rose-300 bg-gradient-to-br from-rose-50 to-red-100'},
+                                {label:'Offices Daily Figure Submitted', value:aadhaarDailyReportTotals.submitted, sub:<button type="button" onClick={() => openDailyStatusCenterList('Submitted')} className="clickable-report-value text-emerald-700 hover:text-emerald-900">View submitted centre list ↗</button>, cls:'border-teal-300 bg-gradient-to-br from-teal-50 to-cyan-100'},
+                                {label:'Offices Daily Figure Not Submitted', value:aadhaarDailyReportTotals.notSubmitted, sub:<button type="button" onClick={() => openDailyStatusCenterList('Not Submitted')} className="clickable-report-value text-orange-700 hover:text-orange-900">View pending centre list ↗</button>, cls:'border-orange-300 bg-gradient-to-br from-orange-50 to-amber-100'},
+                                {label:'Total Transactions', value:aadhaarDailyReportTotals.total, sub:<><span className="text-slate-600">Enrolment {aadhaarDailyReportTotals.enrol.toLocaleString('en-IN')}</span><span className="text-slate-600">Updation {aadhaarDailyReportTotals.update.toLocaleString('en-IN')}</span></>, cls:'border-amber-300 bg-gradient-to-br from-amber-50 to-yellow-100'},
+                                {label:'Aadhaar Revenue', value:`₹${aadhaarDailyReportTotals.revenue.toLocaleString('en-IN')}`, sub:'Aadhaar Revenue', cls:'border-lime-300 bg-gradient-to-br from-lime-50 to-emerald-100'},
+                                {label:'Online Payment Transactions', value:aadhaarDailyReportTotals.onlinePay, sub:'Online Payment', cls:'border-sky-300 bg-gradient-to-br from-sky-50 to-cyan-100'},
+                                {label:'Total MBU Camp Conducted', value:aadhaarDailyReportTotals.mbuCamps, sub:'MBU Camps', cls:'border-violet-300 bg-gradient-to-br from-violet-50 to-purple-100'},
+                                {label:'MBU Camp Total Transaction', value:aadhaarDailyReportTotals.mbuTotal, sub:<><span className="text-slate-600">Enrolment {aadhaarDailyReportTotals.mbuEnrol.toLocaleString('en-IN')}</span><span className="text-slate-600">Updation {aadhaarDailyReportTotals.mbuUpdate.toLocaleString('en-IN')}</span></>, cls:'border-pink-300 bg-gradient-to-br from-pink-50 to-rose-100'}
+                              ].map((k, i) => <div key={i} className={`aadhaar-daily-kpi-card rounded-xl border p-3 min-w-0 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all ${k.cls}`}><div className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wide text-slate-600 leading-snug min-h-[2.2em]">{k.label}</div><div className="text-xl sm:text-2xl font-black text-slate-900 mt-1 truncate">{typeof k.value === 'number' ? k.value.toLocaleString('en-IN') : k.value}</div><div className="mt-1 text-[9px] font-bold flex flex-wrap gap-x-2 gap-y-0.5">{k.sub}</div></div>)}
                             </div>
                           </div>
 
@@ -2340,8 +2342,8 @@
           );
         }
 
-        // Backend Integration Wrapper — Offline-first IndexedDB + optional Google Sheets sync
-        // Google Sheets is OPTIONAL. Leave the URL blank to run completely offline.
+        // Backend Integration Wrapper — Offline-first IndexedDB + preconfigured Google Sheets sync
+        // The regional Apps Script URL is embedded by default; local database remains available offline.
         const CACHE_KEY = "ccs_dashboard_cache_v4";
         const SETTINGS_KEY = "ccs_dashboard_sync_settings_v1";
         const DB_NAME = "CCS_Performance_Dashboard_DB";
@@ -2349,8 +2351,8 @@
         const STORE_NAME = "dashboardData";
 
         const DEFAULT_SYNC_SETTINGS = {
-            googleScriptUrl: "",
-            googleSyncEnabled: false
+            googleScriptUrl: "https://script.google.com/macros/s/AKfycbzLvty_jqHrwi-zv5QW2YnKszQYbnFA-uNlvfH2OE3XdQQs6A0uZ2ObpBnh7kbl8T8h6Q/exec",
+            googleSyncEnabled: true
         };
 
         function normalizeScriptUrl(url) {
@@ -2372,11 +2374,14 @@
                 const raw = localStorage.getItem(SETTINGS_KEY);
                 if (!raw) return { ...DEFAULT_SYNC_SETTINGS };
                 const parsed = JSON.parse(raw);
+                const savedUrl = String(parsed?.googleScriptUrl || "").trim();
+                // Use the embedded regional Apps Script URL automatically when no URL
+                // was saved previously, so first-time opening never asks for setup.
                 return {
                     ...DEFAULT_SYNC_SETTINGS,
                     ...(parsed || {}),
-                    googleScriptUrl: String(parsed?.googleScriptUrl || "").trim(),
-                    googleSyncEnabled: !!parsed?.googleSyncEnabled
+                    googleScriptUrl: savedUrl || DEFAULT_SYNC_SETTINGS.googleScriptUrl,
+                    googleSyncEnabled: savedUrl ? !!parsed?.googleSyncEnabled : true
                 };
             } catch (e) {
                 return { ...DEFAULT_SYNC_SETTINGS };
@@ -2539,8 +2544,8 @@
                             <div className="rounded-xl border border-indigo-200 bg-indigo-50/60 p-4 space-y-3">
                                 <div className="flex items-center justify-between gap-3">
                                     <div>
-                                        <div className="text-sm font-bold text-indigo-950">Optional Google Sheets Sync</div>
-                                        <p className="text-xs text-indigo-800 mt-0.5">Enter your deployed Apps Script Web App URL only if cloud sync is required.</p>
+                                        <div className="text-sm font-bold text-indigo-950">Google Sheets Live Sync — Preconfigured</div>
+                                        <p className="text-xs text-indigo-800 mt-0.5">The regional Apps Script URL is already embedded. No setup is required when opening the dashboard.</p>
                                     </div>
                                     <label className="flex items-center gap-2 text-xs font-bold text-indigo-900 cursor-pointer">
                                         <input type="checkbox" checked={enabled} onChange={e => setEnabled(e.target.checked)} className="w-4 h-4 accent-indigo-600" />

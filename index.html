@@ -1385,9 +1385,6 @@
                       <button type="button" onClick={() => onRefresh && onRefresh()} disabled={isRefreshing} title={lastSynced ? `Last synced: ${new Date(lastSynced).toLocaleString('en-IN')}` : 'Sync from Google Sheets'} className="no-print inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg border border-slate-200 shadow-xs transition-colors disabled:opacity-60">
                         <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-indigo-600' : 'text-indigo-600'}`} /><span>{isRefreshing ? 'Syncing…' : 'Sync Sheets'}</span>
                       </button>
-                      <button onClick={handleOpenAdd} className="no-print inline-flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors">
-                        <Plus className="w-4 h-4" /><span>Add Record</span>
-                      </button>
                     </div>
                   </div>
                   <div className="flex items-stretch gap-2 border-t border-slate-100 pt-2 -mb-px overflow-x-auto pb-0">

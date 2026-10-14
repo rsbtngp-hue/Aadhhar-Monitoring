@@ -1390,9 +1390,9 @@
           const monthlyTargetReport = useMemo(() => {
             const dateKey = (v) => {
               const raw=String(v??'').trim(); if(!raw)return '';
-              let m=raw.match(/^(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})/);
+              let m=raw.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
               if(m)return m[1]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[3]).padStart(2,'0');
-              m=raw.match(/^(\\d{1,2})[-/](\\d{1,2})[-/](\\d{4})/);
+              m=raw.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
               if(m)return m[3]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');
               const d=new Date(raw); return Number.isNaN(d.getTime())?'':d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
             };

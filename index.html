@@ -2841,11 +2841,11 @@
                     setOfficeMasterSyncStatus("Saved to this browser's local database; Google sync is disabled.");
                     return false;
                 }
+                // Always attempt the save endpoint. Some Apps Script deployments support
+                // POST saveOfficeMaster even when GET getOffices is unavailable or blocked.
+                // The local copy remains queued (pendingSync=true) unless Google acknowledges.
                 if (officeMasterApiSupported !== true) {
-                    setOfficeMasterSyncStatus(officeMasterApiSupported === false
-                        ? "Saved locally. Google Sheet update is pending: the deployed Apps Script does not expose a confirmed Office Master API."
-                        : "Saved locally. Checking Google Sheet Office Master API; pending edits will be queued.");
-                    return false;
+                    setOfficeMasterSyncStatus("Saved locally. Attempting Google Office Master update…");
                 }
                 try {
                     const endpoint = buildSyncActionUrl(syncSettings.googleScriptUrl, "saveOfficeMaster");

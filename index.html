@@ -2506,7 +2506,7 @@
                     division: String(source.division ?? source.divisionName ?? source.division_name ?? ""),
                     subDiv: String(source.subDiv ?? source.subDivision ?? source.sub_division ?? source.sub_division_name ?? ""),
                     stationId: String(source.stationId ?? source.station_id ?? ""),
-                    isAadhaar: asBool(source.isAadhaar ?? source.isAadhaarCenter ?? source.aadhaarCentre ?? source.aadhaar_center),
+                    isAadhaar: asBool(source.isAadhaar ?? source.isAadhaarCenter ?? source.aadhaarCentre ?? source.aadhaar_center ?? source.aadhaar),
                     kits: Number.isFinite(kitsValue) ? Math.max(0, kitsValue) : 0,
                     isGangajal: asBool(source.isGangajal ?? source.isGangajalOutlet ?? source.gangajal ?? source.gangajal_outlet),
                     isPopsk: asBool(source.isPopsk ?? source.isPopskCenter ?? source.popsk ?? source.popsk_center),
@@ -2889,7 +2889,7 @@
                     }
                     setOfficeMasterSyncStatus("Checking Google Sheet Office Master API…");
                     try {
-                        const endpoint = buildSyncActionUrl(syncSettings.googleScriptUrl, "getOfficeMaster");
+                        const endpoint = buildSyncActionUrl(syncSettings.googleScriptUrl, "getOffices");
                         const controller = new AbortController();
                         const timer = setTimeout(() => controller.abort(), 30000);
                         const response = await fetch(endpoint, { method: "GET", mode: "cors", cache: "no-store", signal: controller.signal });
@@ -2897,7 +2897,7 @@
                         if (!response.ok) throw new Error("HTTP " + response.status);
                         const json = await response.json();
                         const remoteRows = extractOfficeMasterFromResponse(json);
-                        if (!remoteRows) throw new Error("Apps Script did not return Office Master records for action=getOfficeMaster");
+                        if (!remoteRows) throw new Error("Apps Script did not return Office Master records for action=getOffices");
                         if (!alive) return;
                         setOfficeMasterApiSupported(true);
 

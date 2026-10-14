@@ -1387,6 +1387,43 @@
               totMonthlyAchievePct:totMonthlyTrans>0?((totActualTrans/totMonthlyTrans)*100).toFixed(1):'0',totAnnualAchievePct:totAnnualTrans>0?((totActualTrans/totAnnualTrans)*100).toFixed(1):'0'}};
           }, [divisionTargets,dataRows,colMap,targetFromDate,targetToDate,targetMonth]);
 
+          const monthlyTargetReport = useMemo(() => {
+            const dateKey = (v) => {
+              const raw=String(v??'').trim(); if(!raw)return '';
+              let m=raw.match(/^(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})/);
+              if(m)return m[1]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[3]).padStart(2,'0');
+              m=raw.match(/^(\\d{1,2})[-/](\\d{1,2})[-/](\\d{4})/);
+              if(m)return m[3]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');
+              const d=new Date(raw); return Number.isNaN(d.getTime())?'':d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+            };
+            const today=getLocalTodayKey(), from=monthlyReportFrom||today.slice(0,7)+'-01', to=monthlyReportTo||today;
+            const start=from<=to?from:to, end=from<=to?to:from, map=new Map(), divisions=new Set(), subs=new Set();
+            dataRows.forEach(item=>{
+              const r=item.row||[], dt=dateKey(r[colMap.date]), div=String(r[colMap.division]||'Unassigned Division').trim(), sub=String(r[colMap.subDiv]||'Unassigned Sub Division').trim();
+              if(!dt||dt<'2026-04-01'||dt>'2027-03-31'||dt>today||dt<start||dt>end)return;
+              if(monthlyReportMonth&&dt.slice(0,7)!==monthlyReportMonth)return;
+              if(monthlyReportDivision!=='ALL'&&div!==monthlyReportDivision)return;
+              if(monthlyReportSubDivision!=='ALL'&&sub!==monthlyReportSubDivision)return;
+              divisions.add(div); subs.add(sub);
+              const key=div.toLowerCase(),cur=map.get(key)||{division:div,enrol:0,update:0,subs:new Map()};
+              const e=parseNum(r[colMap.counterEnrol])+parseNum(r[colMap.mbuEnrol]),u=parseNum(r[colMap.counterUpdate])+parseNum(r[colMap.mbuUpdate]);
+              cur.enrol+=e;cur.update+=u;
+              const sk=sub.toLowerCase(),sr=cur.subs.get(sk)||{subDivision:sub,enrol:0,update:0};
+              sr.enrol+=e;sr.update+=u;cur.subs.set(sk,sr);map.set(key,cur);
+            });
+            const rows=divisionTargets.filter(d=>monthlyReportDivision==='ALL'||d.division===monthlyReportDivision).map(d=>{
+              const a=map.get(d.division.toLowerCase())||{enrol:0,update:0,subs:new Map()};
+              const children=[...a.subs.values()].filter(s=>monthlyReportSubDivision==='ALL'||s.subDivision===monthlyReportSubDivision).sort((x,y)=>x.subDivision.localeCompare(y.subDivision));
+              const enrol=children.reduce((n,s)=>n+s.enrol,0),update=children.reduce((n,s)=>n+s.update,0);
+              const group=[{division:d.division,subDivision:'Selected sub-divisions total',isDivision:true,target:Number(d.monthlyEnrol||0)+Number(d.monthlyUpdate||0),enrol,update,total:enrol+update}];
+              children.forEach(s=>group.push({division:d.division,subDivision:s.subDivision,isDivision:false,target:null,enrol:s.enrol,update:s.update,total:s.enrol+s.update}));
+              return group;
+            }).flat();
+            const allDivisions=[...new Set(dataRows.map(i=>String((i.row||[])[colMap.division]||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+            const allSubs=[...new Set(dataRows.filter(i=>monthlyReportDivision==='ALL'||String((i.row||[])[colMap.division]||'').trim()===monthlyReportDivision).map(i=>String((i.row||[])[colMap.subDiv]||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+            return {rows,allDivisions,allSubs};
+          },[dataRows,colMap,divisionTargets,monthlyReportFrom,monthlyReportTo,monthlyReportMonth,monthlyReportDivision,monthlyReportSubDivision]);
+
           const toggleAadhaarDiv = (div) => setExpandedAadhaarDivs((prev) => { const next = new Set(prev); next.has(div) ? next.delete(div) : next.add(div); return next; });
           const toggleAadhaarSubDiv = (key) => setExpandedAadhaarSubDivs((prev) => { const next = new Set(prev); next.has(key) ? next.delete(key) : next.add(key); return next; });
           const toggleAadhaarCenter = (key) => setExpandedAadhaarCenters((prev) => { const next = new Set(prev); next.has(key) ? next.delete(key) : next.add(key); return next; });
@@ -1919,9 +1956,34 @@
                                 </div>
                               </div>
 
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+                                {calculatedDivisionTargets.topYearlyDivisions.map((r,i)=><div key={r.id} className={`rounded-xl border p-4 shadow-sm ${i===0?'border-amber-300 bg-gradient-to-br from-amber-100 to-yellow-50':i===1?'border-slate-300 bg-gradient-to-br from-slate-100 to-white':'border-orange-300 bg-gradient-to-br from-orange-100 to-amber-50'}`}><div className="flex items-center justify-between"><span className="text-[10px] uppercase tracking-wide font-extrabold text-slate-600">Top {i+1} Division · Yearly Achievement</span><Award className="w-4 h-4 text-amber-600" /></div><div className="mt-2 text-sm font-extrabold text-slate-900">{r.division}</div><div className="mt-1 text-2xl font-black font-mono text-indigo-900">{r.annualPercent.toFixed(1)}%</div><div className="mt-1 text-[10px] text-slate-600">Achievement {r.actualTotal.toLocaleString('en-IN')} / Annual target {r.totalAnnual.toLocaleString('en-IN')}</div></div>)}
+                              </div>
+                              <div className="mb-5 rounded-xl border border-indigo-200 overflow-hidden shadow-2xs">
+                                <div className="px-4 py-3 bg-gradient-to-r from-indigo-700 to-blue-700 text-white flex flex-wrap items-center justify-between gap-2"><span className="text-xs font-extrabold uppercase tracking-wide">Yearly Target Performance Report · FY 2026-27</span><ReportExportButtons tableId="yearly-target-table" title="Yearly Target Performance Report" reportPeriod={`01-04-2026 to ${getLocalTodayKey()}`} /></div>
+                                <div className="overflow-x-auto"><table id="yearly-target-table" className="w-full text-left border-collapse text-xs">
+                                  <thead><tr className="bg-indigo-50 text-indigo-950 uppercase text-[10px] tracking-wide"><th className="p-2.5">Division</th><th className="p-2.5 text-right">Annual Target</th><th className="p-2.5 text-right">Enrolment Achieved</th><th className="p-2.5 text-right">Updation Achieved</th><th className="p-2.5 text-right">Total Achievement</th><th className="p-2.5 text-center">Achievement %</th><th className="p-2.5 text-right">Shortfall</th></tr></thead>
+                                  <tbody className="divide-y divide-slate-100">{calculatedDivisionTargets.rows.map(r=><tr key={r.id} className="hover:bg-indigo-50/50"><td className="p-2.5 font-bold">{r.division}</td><td className="p-2.5 text-right font-mono">{r.totalAnnual.toLocaleString('en-IN')}</td><td className="p-2.5 text-right font-mono">{r.actualEnrol.toLocaleString('en-IN')}</td><td className="p-2.5 text-right font-mono">{r.actualUpdate.toLocaleString('en-IN')}</td><td className="p-2.5 text-right font-mono font-bold">{r.actualTotal.toLocaleString('en-IN')}</td><td className="p-2.5 text-center"><span className={`inline-flex rounded-full px-2 py-0.5 font-extrabold ${Number(r.annualTotalAchievePct)>=100?'bg-emerald-100 text-emerald-800':Number(r.annualTotalAchievePct)>=50?'bg-amber-100 text-amber-800':'bg-rose-100 text-rose-800'}`}>{r.annualTotalAchievePct}%</span></td><td className="p-2.5 text-right font-mono">{r.annualTotalShortfall.toLocaleString('en-IN')}</td></tr>)}</tbody>
+                                  <tfoot><tr className="bg-slate-900 text-white font-extrabold"><td className="p-2.5">Nagpur Region Total</td><td className="p-2.5 text-right">{calculatedDivisionTargets.summary.totAnnualTrans.toLocaleString('en-IN')}</td><td className="p-2.5 text-right">{calculatedDivisionTargets.summary.totActualEnrol.toLocaleString('en-IN')}</td><td className="p-2.5 text-right">{calculatedDivisionTargets.summary.totActualUpdate.toLocaleString('en-IN')}</td><td className="p-2.5 text-right">{calculatedDivisionTargets.summary.totActualTrans.toLocaleString('en-IN')}</td><td className="p-2.5 text-center">{calculatedDivisionTargets.summary.totAnnualAchievePct}%</td><td className="p-2.5 text-right">{calculatedDivisionTargets.summary.totAnnualTotalShortfall.toLocaleString('en-IN')}</td></tr></tfoot>
+                                </table></div>
+                              </div>
+                              <div className="mb-5 rounded-xl border border-emerald-200 overflow-hidden shadow-2xs">
+                                <div className="px-4 py-3 bg-gradient-to-r from-emerald-700 to-teal-700 text-white flex flex-wrap items-center justify-between gap-2"><span className="text-xs font-extrabold uppercase tracking-wide">Monthly Target Performance Report</span><ReportExportButtons tableId="monthly-target-table" title="Monthly Target Performance Report" reportPeriod={`${monthlyReportFrom || 'FY start'} to ${monthlyReportTo || getLocalTodayKey()}`} /></div>
+                                <div className="p-3 bg-emerald-50/70 border-b border-emerald-100"><div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+                                  <label className="text-[10px] font-extrabold uppercase tracking-wide text-slate-600">From Date<input type="date" min="2026-04-01" max="2027-03-31" value={monthlyReportFrom} onChange={e=>setMonthlyReportFrom(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-semibold" /></label>
+                                  <label className="text-[10px] font-extrabold uppercase tracking-wide text-slate-600">To Date<input type="date" min="2026-04-01" max="2027-03-31" value={monthlyReportTo} onChange={e=>setMonthlyReportTo(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-semibold" /></label>
+                                  <label className="text-[10px] font-extrabold uppercase tracking-wide text-slate-600">Month<select value={monthlyReportMonth} onChange={e=>setMonthlyReportMonth(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-semibold"><option value="">All months in date range</option>{['2026-04','2026-05','2026-06','2026-07','2026-08','2026-09','2026-10','2026-11','2026-12','2027-01','2027-02','2027-03'].map(m=><option key={m} value={m}>{new Date(m+'-01T00:00:00').toLocaleDateString('en-IN',{month:'long',year:'numeric'})}</option>)}</select></label>
+                                  <label className="text-[10px] font-extrabold uppercase tracking-wide text-slate-600">Division<select value={monthlyReportDivision} onChange={e=>{setMonthlyReportDivision(e.target.value);setMonthlyReportSubDivision('ALL')}} className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-semibold"><option value="ALL">All Divisions</option>{monthlyTargetReport.allDivisions.map(d=><option key={d} value={d}>{d}</option>)}</select></label>
+                                  <label className="text-[10px] font-extrabold uppercase tracking-wide text-slate-600">Sub Division<select value={monthlyReportSubDivision} onChange={e=>setMonthlyReportSubDivision(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-semibold"><option value="ALL">All Sub Divisions</option>{monthlyTargetReport.allSubs.map(sd=><option key={sd} value={sd}>{sd}</option>)}</select></label>
+                                </div><div className="mt-2 text-[10px] text-slate-600">Monthly targets are set at Division level; Sub Division rows show the filtered actual transaction breakdown.</div></div>
+                                <div className="overflow-x-auto"><table id="monthly-target-table" className="w-full text-left border-collapse text-xs">
+                                  <thead><tr className="bg-emerald-50 text-emerald-950 uppercase text-[10px] tracking-wide"><th className="p-2.5">Division</th><th className="p-2.5">Sub Division</th><th className="p-2.5 text-right">Monthly Target</th><th className="p-2.5 text-right">Enrolment</th><th className="p-2.5 text-right">Updation</th><th className="p-2.5 text-right">Total Achievement</th><th className="p-2.5 text-center">Achievement %</th><th className="p-2.5 text-right">Shortfall</th></tr></thead>
+                                  <tbody className="divide-y divide-slate-100">{monthlyTargetReport.rows.map((r,i)=>{const pct=r.isDivision&&r.target>0?r.total/r.target*100:null;const sf=r.isDivision?Math.max(0,r.target-r.total):null;return <tr key={r.division+'-'+r.subDivision+'-'+i} className={r.isDivision?'bg-emerald-50/70 font-extrabold':'hover:bg-slate-50 text-slate-600'}><td className="p-2.5">{r.division}</td><td className="p-2.5">{r.subDivision}</td><td className="p-2.5 text-right font-mono">{r.isDivision?r.target.toLocaleString('en-IN'):'—'}</td><td className="p-2.5 text-right font-mono">{r.enrol.toLocaleString('en-IN')}</td><td className="p-2.5 text-right font-mono">{r.update.toLocaleString('en-IN')}</td><td className="p-2.5 text-right font-mono">{r.total.toLocaleString('en-IN')}</td><td className="p-2.5 text-center">{pct===null?'—':pct.toFixed(1)+'%'}</td><td className="p-2.5 text-right font-mono">{sf===null?'—':sf.toLocaleString('en-IN')}</td></tr>})}</tbody>
+                                </table></div>
+                              </div>
                               {/* Target Interactive Table */}
-                              <div className="flex items-center justify-between gap-2 mb-2" data-export-ignore="true"><span className="text-[11px] font-bold text-slate-700">Division Target Performance Report</span><ReportExportButtons tableId="division-target-table" title="Division Target Performance Report" reportPeriod={reportPeriodLabel} /></div>
-                              <div className="rounded-xl border border-slate-200 overflow-x-auto shadow-2xs">
+                              <div className="hidden" data-export-ignore="true"><span>Legacy combined report hidden</span></div>
+                              <div className="hidden rounded-xl border border-slate-200 overflow-x-auto shadow-2xs">
                                 <table id="division-target-table" className="w-full text-left border-collapse text-xs">
                                   <thead>
                                     <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-300 uppercase tracking-wider text-[11px]">

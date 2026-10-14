@@ -361,8 +361,10 @@
           const [adminLoginError, setAdminLoginError] = useState('');
           const [hiddenSections, setHiddenSections] = useState(() => {
             try {
-              const saved = JSON.parse(localStorage.getItem(HIDDEN_SECTIONS_KEY) || '[]');
-              return Array.isArray(saved) ? saved : [];
+              const rawSaved = localStorage.getItem(HIDDEN_SECTIONS_KEY);
+              if (rawSaved === null) return ['master', 'records'];
+              const saved = JSON.parse(rawSaved || '[]');
+              return Array.isArray(saved) ? saved : ['master', 'records'];
             } catch (e) { return []; }
           });
           const [divisionTargets, setDivisionTargets] = useState(initialDivisionTargets);
@@ -2853,7 +2855,7 @@
                         method: "POST",
                         mode: "cors",
                         headers: { "Content-Type": "text/plain;charset=utf-8" },
-                        body: JSON.stringify({ action: "saveOfficeMaster", type: "officeMaster", officeMaster: saved.data, rows: saved.data, savedAt: saved.savedAt })
+                        body: JSON.stringify({ action: "saveOfficeMaster", type: "officeMaster", record: { officeMaster: saved.data, rows: saved.data, data: saved.data, savedAt: saved.savedAt }, officeMaster: saved.data, rows: saved.data, data: saved.data, savedAt: saved.savedAt })
                     });
                     const responseText = await response.text();
                     let result = null;
@@ -2908,7 +2910,7 @@
                                 const post = await fetch(saveUrl, {
                                     method: "POST", mode: "cors",
                                     headers: { "Content-Type": "text/plain;charset=utf-8" },
-                                    body: JSON.stringify({ action: "saveOfficeMaster", type: "officeMaster", officeMaster: latestLocal.data, rows: latestLocal.data, savedAt: latestLocal.savedAt })
+                                    body: JSON.stringify({ action: "saveOfficeMaster", type: "officeMaster", record: { officeMaster: latestLocal.data, rows: latestLocal.data, data: latestLocal.data, savedAt: latestLocal.savedAt }, officeMaster: latestLocal.data, rows: latestLocal.data, data: latestLocal.data, savedAt: latestLocal.savedAt })
                                 });
                                 const postText = await post.text();
                                 let ack = null;

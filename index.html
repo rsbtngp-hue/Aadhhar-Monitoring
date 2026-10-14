@@ -379,6 +379,11 @@
           const [targetFromDate, setTargetFromDate] = useState('2026-04-01');
           const [targetToDate, setTargetToDate] = useState(getLocalTodayKey); 
           const [targetMonth, setTargetMonth] = useState('ALL'); 
+          const [monthlyReportFrom, setMonthlyReportFrom] = useState(() => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01'; });
+          const [monthlyReportTo, setMonthlyReportTo] = useState(getLocalTodayKey);
+          const [monthlyReportMonth, setMonthlyReportMonth] = useState(() => getLocalTodayKey().slice(0,7));
+          const [monthlyReportDivision, setMonthlyReportDivision] = useState('ALL');
+          const [monthlyReportSubDivision, setMonthlyReportSubDivision] = useState('ALL');
           const [aadhaarSubView, setAadhaarSubView] = useState('ALL');
           // Aadhaar Daily Transaction Report filters (independent of the dashboard-wide filters)
           // Daily report opens on today's date by default.
@@ -1334,8 +1339,11 @@
               if (fyMonth && dt.slice(0,7) !== fyMonth) return false;
               return true;
             });
+            const currentMonthKey = getLocalTodayKey().slice(0,7);
+            const yearlyRows = dataRows.filter((item) => { const dt=dateKey((item.row||[])[colMap.date]); return dt && dt >= '2026-04-01' && dt <= '2027-03-31' && dt <= getLocalTodayKey(); });
+            const currentMonthRows = yearlyRows.filter((item) => dateKey((item.row||[])[colMap.date]).slice(0,7) === currentMonthKey);
             const actualByDivision = new Map();
-            targetRows.forEach((item) => {
+            yearlyRows.forEach((item) => {
               const r = item.row || [];
               const div = String(r[colMap.division] || 'Unassigned Division').trim().toLowerCase();
               const cur = actualByDivision.get(div) || { enrol:0, update:0 };
@@ -1343,6 +1351,15 @@
               cur.update += parseNum(r[colMap.counterUpdate]) + parseNum(r[colMap.mbuUpdate]);
               actualByDivision.set(div, cur);
             });
+            const currentMonthByDivision = new Map();
+            currentMonthRows.forEach((item) => {
+              const r=item.row||[], div=String(r[colMap.division]||'Unassigned Division').trim().toLowerCase();
+              const cur=currentMonthByDivision.get(div)||{enrol:0,update:0};
+              cur.enrol+=parseNum(r[colMap.counterEnrol])+parseNum(r[colMap.mbuEnrol]);
+              cur.update+=parseNum(r[colMap.counterUpdate])+parseNum(r[colMap.mbuUpdate]);
+              currentMonthByDivision.set(div,cur);
+            });
+            let currentMonthActualTrans=0;
             let totAnnualEnrol=0,totAnnualUpdate=0,totAnnualTrans=0,totMonthlyEnrol=0,totMonthlyUpdate=0,totMonthlyTrans=0,totActualEnrol=0,totActualUpdate=0,totActualTrans=0;
             const rows = divisionTargets.map((d) => {
               const totalAnnual=Number(d.annualEnrol||0)+Number(d.annualUpdate||0), totalMonthly=Number(d.monthlyEnrol||0)+Number(d.monthlyUpdate||0);
@@ -1350,6 +1367,8 @@
               totMonthlyEnrol+=Number(d.monthlyEnrol||0); totMonthlyUpdate+=Number(d.monthlyUpdate||0); totMonthlyTrans+=totalMonthly;
               const actual=actualByDivision.get(d.division.trim().toLowerCase())||{enrol:0,update:0};
               const actualEnrol=actual.enrol,actualUpdate=actual.update,actualTotal=actualEnrol+actualUpdate;
+              const monthActual=currentMonthByDivision.get(d.division.trim().toLowerCase())||{enrol:0,update:0};
+              currentMonthActualTrans+=monthActual.enrol+monthActual.update;
               totActualEnrol+=actualEnrol;totActualUpdate+=actualUpdate;totActualTrans+=actualTotal;
               return {...d,totalAnnual,totalMonthly,actualEnrol,actualUpdate,actualTotal,
                 monthlyEnrolAchievePct:d.monthlyEnrol>0?((actualEnrol/d.monthlyEnrol)*100).toFixed(1):'0',monthlyEnrolShortfall:Math.max(0,d.monthlyEnrol-actualEnrol),monthlyEnrolSurplus:Math.max(0,actualEnrol-d.monthlyEnrol),
@@ -1359,7 +1378,10 @@
                 annualUpdateAchievePct:d.annualUpdate>0?((actualUpdate/d.annualUpdate)*100).toFixed(1):'0',annualUpdateShortfall:Math.max(0,d.annualUpdate-actualUpdate),annualUpdateSurplus:Math.max(0,actualUpdate-d.annualUpdate),
                 annualTotalAchievePct:totalAnnual>0?((actualTotal/totalAnnual)*100).toFixed(1):'0',annualTotalShortfall:Math.max(0,totalAnnual-actualTotal),annualTotalSurplus:Math.max(0,actualTotal-totalAnnual)};
             });
-            return {rows,summary:{totAnnualEnrol,totAnnualUpdate,totAnnualTrans,totMonthlyEnrol,totMonthlyUpdate,totMonthlyTrans,totActualEnrol,totActualUpdate,totActualTrans,
+            const topYearlyDivisions = rows.map(r => ({...r, annualPercent:Number(r.annualTotalAchievePct)||0})).sort((a,b)=>b.annualPercent-a.annualPercent).slice(0,3);
+            return {rows,topYearlyDivisions,summary:{totAnnualEnrol,totAnnualUpdate,totAnnualTrans,totMonthlyEnrol,totMonthlyUpdate,totMonthlyTrans,totActualEnrol,totActualUpdate,totActualTrans,currentMonthActualTrans,
+              currentMonthAchievePct:totMonthlyTrans>0?((currentMonthActualTrans/totMonthlyTrans)*100).toFixed(1):'0',
+              currentMonthShortfall:Math.max(0,totMonthlyTrans-currentMonthActualTrans),
               totMonthlyEnrolShortfall:Math.max(0,totMonthlyEnrol-totActualEnrol),totMonthlyUpdateShortfall:Math.max(0,totMonthlyUpdate-totActualUpdate),totMonthlyTotalShortfall:Math.max(0,totMonthlyTrans-totActualTrans),
               totAnnualEnrolShortfall:Math.max(0,totAnnualEnrol-totActualEnrol),totAnnualUpdateShortfall:Math.max(0,totAnnualUpdate-totActualUpdate),totAnnualTotalShortfall:Math.max(0,totAnnualTrans-totActualTrans),
               totMonthlyAchievePct:totMonthlyTrans>0?((totActualTrans/totMonthlyTrans)*100).toFixed(1):'0',totAnnualAchievePct:totAnnualTrans>0?((totActualTrans/totAnnualTrans)*100).toFixed(1):'0'}};
@@ -1874,8 +1896,8 @@
                                     <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-900">Monthly Achievement</span>
                                     <Award className="w-4 h-4 text-emerald-600" />
                                   </div>
-                                  <div className="text-2xl font-extrabold text-emerald-800 font-mono mt-2">{calculatedDivisionTargets.summary.totActualTrans.toLocaleString()}</div>
-                                  <div className="text-[10px] text-emerald-700 mt-2 pt-2 border-t border-emerald-200/60">Achievement: <strong>{calculatedDivisionTargets.summary.totMonthlyAchievePct}%</strong> &nbsp;•&nbsp; Shortfall: <strong>{calculatedDivisionTargets.summary.totMonthlyTotalShortfall.toLocaleString()}</strong></div>
+                                  <div className="text-2xl font-extrabold text-emerald-800 font-mono mt-2">{calculatedDivisionTargets.summary.currentMonthActualTrans.toLocaleString('en-IN')}</div>
+                                  <div className="text-[10px] text-emerald-700 mt-2 pt-2 border-t border-emerald-200/60">Current month achievement: <strong>{calculatedDivisionTargets.summary.currentMonthAchievePct}%</strong> &nbsp;•&nbsp; Shortfall: <strong>{calculatedDivisionTargets.summary.currentMonthShortfall.toLocaleString('en-IN')}</strong></div>
                                 </div>
 
                                 <div className="bg-gradient-to-br from-indigo-500/10 via-indigo-50/70 to-white p-4 rounded-xl border border-indigo-200 shadow-2xs">

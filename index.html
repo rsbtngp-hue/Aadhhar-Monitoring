@@ -1941,22 +1941,18 @@
 
                               {/* Four KPI Cards — Both Annual & Monthly */}
                               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 text-xs mb-5 items-stretch">
-                                <div className="bg-gradient-to-br from-indigo-500/10 via-indigo-50/70 to-white p-4 rounded-xl border border-indigo-200 shadow-2xs">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-900">Annual Targets</span>
-                                    <Target className="w-4 h-4 text-indigo-600" />
-                                  </div>
-                                  <div className="text-2xl font-extrabold text-indigo-950 font-mono mt-2">{calculatedDivisionTargets.summary.totAnnualTrans.toLocaleString()}</div>
-                                  <div className="text-[10px] text-indigo-700 mt-2 pt-2 border-t border-indigo-200/60">Enrol: <strong>{calculatedDivisionTargets.summary.totAnnualEnrol.toLocaleString()}</strong> &nbsp;•&nbsp; Upd: <strong>{calculatedDivisionTargets.summary.totAnnualUpdate.toLocaleString()}</strong></div>
+                                <div className="relative min-w-0 overflow-hidden rounded-2xl border border-indigo-400 bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-700 p-4 text-white shadow-lg shadow-indigo-200/70 transition duration-200 hover:-translate-y-1 hover:shadow-xl">
+                                  <div className="pointer-events-none absolute -right-3 -top-4 opacity-15"><Target className="h-24 w-24" /></div>
+                                  <div className="relative flex items-center justify-between gap-2"><span className="text-[11px] font-extrabold uppercase tracking-wider text-white/95">Annual Targets</span><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30"><Target className="h-4 w-4" /></span></div>
+                                  <div className="relative mt-3 break-words text-2xl font-black tracking-tight text-white font-mono lg:text-3xl">{calculatedDivisionTargets.summary.totAnnualTrans.toLocaleString('en-IN')}</div>
+                                  <div className="relative mt-3 border-t border-white/30 pt-2 text-[10px] text-white/95">Enrol: <strong>{calculatedDivisionTargets.summary.totAnnualEnrol.toLocaleString('en-IN')}</strong> <span className="mx-1">•</span> Upd: <strong>{calculatedDivisionTargets.summary.totAnnualUpdate.toLocaleString('en-IN')}</strong></div>
                                 </div>
 
-                                <div className="bg-gradient-to-br from-purple-500/10 via-purple-50/70 to-white p-4 rounded-xl border border-purple-200 shadow-2xs">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-[11px] font-bold uppercase tracking-wider text-purple-900">Annual Achievement</span>
-                                    <Award className="w-4 h-4 text-purple-600" />
-                                  </div>
-                                  <div className="text-2xl font-extrabold text-purple-800 font-mono mt-2">{calculatedDivisionTargets.summary.totActualTrans.toLocaleString()}</div>
-                                  <div className="text-[10px] text-purple-700 mt-2 pt-2 border-t border-purple-200/60">Achievement: <strong>{calculatedDivisionTargets.summary.totAnnualAchievePct}%</strong> &nbsp;•&nbsp; Shortfall: <strong>{calculatedDivisionTargets.summary.totAnnualTotalShortfall.toLocaleString()}</strong></div>
+                                <div className="relative min-w-0 overflow-hidden rounded-2xl border border-fuchsia-400 bg-gradient-to-br from-fuchsia-600 via-purple-600 to-pink-700 p-4 text-white shadow-lg shadow-fuchsia-200/70 transition duration-200 hover:-translate-y-1 hover:shadow-xl">
+                                  <div className="pointer-events-none absolute -right-3 -top-4 opacity-15"><Award className="h-24 w-24" /></div>
+                                  <div className="relative flex items-center justify-between gap-2"><span className="text-[11px] font-extrabold uppercase tracking-wider text-white/95">Annual Achievement</span><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30"><Award className="h-4 w-4" /></span></div>
+                                  <div className="relative mt-3 break-words text-2xl font-black tracking-tight text-white font-mono lg:text-3xl">{calculatedDivisionTargets.summary.totActualTrans.toLocaleString('en-IN')}</div>
+                                  <div className="relative mt-3 border-t border-white/30 pt-2 text-[10px] text-white/95">Achievement: <strong>{calculatedDivisionTargets.summary.totAnnualAchievePct}%</strong> <span className="mx-1">•</span> Shortfall: <strong>{calculatedDivisionTargets.summary.totAnnualTotalShortfall.toLocaleString('en-IN')}</strong></div>
                                 </div>
 
                                 <div className="relative overflow-hidden bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 p-4 rounded-2xl border border-amber-400 shadow-lg shadow-amber-200/60 text-white min-w-0">
@@ -1980,8 +1976,8 @@
                                 </div>
                               </div>
 
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
-                                {calculatedDivisionTargets.topYearlyDivisions.map((r,i)=><div key={r.id} className={`rounded-xl border p-4 shadow-sm ${i===0?'border-amber-300 bg-gradient-to-br from-amber-100 to-yellow-50':i===1?'border-slate-300 bg-gradient-to-br from-slate-100 to-white':'border-orange-300 bg-gradient-to-br from-orange-100 to-amber-50'}`}><div className="flex items-center justify-between"><span className="text-[10px] uppercase tracking-wide font-extrabold text-slate-600">Top {i+1} Division · Yearly Achievement</span><Award className="w-4 h-4 text-amber-600" /></div><div className="mt-2 text-sm font-extrabold text-slate-900">{r.division}</div><div className="mt-1 text-2xl font-black font-mono text-indigo-900">{r.annualPercent.toFixed(1)}%</div><div className="mt-1 text-[10px] text-slate-600">Achievement {r.actualTotal.toLocaleString('en-IN')} / Annual target {r.totalAnnual.toLocaleString('en-IN')}</div></div>)}
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+                                {calculatedDivisionTargets.topYearlyDivisions.map((r,i)=><div key={r.id} className={`relative min-w-0 overflow-hidden rounded-2xl border p-4 text-white shadow-lg transition duration-200 hover:-translate-y-1 hover:shadow-xl ${i===0?'border-amber-400 bg-gradient-to-br from-amber-500 via-orange-500 to-rose-600 shadow-amber-200/70':i===1?'border-sky-400 bg-gradient-to-br from-sky-600 via-cyan-600 to-blue-700 shadow-sky-200/70':'border-emerald-400 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 shadow-emerald-200/70'}`}><div className="pointer-events-none absolute -right-3 -top-4 opacity-15"><Award className="h-24 w-24" /></div><div className="relative flex items-center justify-between gap-2"><span className="text-[10px] uppercase tracking-wide font-extrabold text-white/95">Top {i+1} Division · Yearly Achievement</span><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30"><Award className="h-4 w-4" /></span></div><div className="relative mt-3 text-sm font-extrabold text-white">{r.division}</div><div className="relative mt-1 text-3xl font-black font-mono tracking-tight text-white">{r.annualPercent.toFixed(1)}%</div><div className="relative mt-2 border-t border-white/30 pt-2 text-[10px] text-white/95">Achievement <strong>{r.actualTotal.toLocaleString('en-IN')}</strong> / Annual target <strong>{r.totalAnnual.toLocaleString('en-IN')}</strong></div></div>)}
                               </div>
                               <div className="mb-5 rounded-xl border border-indigo-200 overflow-hidden shadow-2xs">
                                 <div className="px-4 py-3 bg-gradient-to-r from-indigo-700 to-blue-700 text-white flex flex-wrap items-center justify-between gap-2"><span className="text-xs font-extrabold uppercase tracking-wide">Yearly Target Performance Report · FY 2026-27</span><ReportExportButtons tableId="yearly-target-table" title="Yearly Target Performance Report" reportPeriod={`01-04-2026 to ${getLocalTodayKey()}`} /></div>

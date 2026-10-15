@@ -2570,6 +2570,7 @@
         // The regional Apps Script URL is embedded by default; local database remains available offline.
         const CACHE_KEY = "ccs_dashboard_cache_v4";
         const SETTINGS_KEY = "ccs_dashboard_sync_settings_v1";
+        const SETTINGS_URL_MIGRATION_KEY = "ccs_dashboard_sync_url_migration_v2";
         const DB_NAME = "CCS_Performance_Dashboard_DB";
         const DB_VERSION = 1;
         const STORE_NAME = "dashboardData";
@@ -2663,16 +2664,28 @@
         function readSyncSettings() {
             try {
                 const raw = localStorage.getItem(SETTINGS_KEY);
-                if (!raw) return { ...DEFAULT_SYNC_SETTINGS };
-                const parsed = JSON.parse(raw);
+                const parsed = raw ? JSON.parse(raw) : {};
                 const savedUrl = String(parsed?.googleScriptUrl || "").trim();
-                // Use the embedded regional Apps Script URL automatically when no URL
-                // was saved previously, so first-time opening never asks for setup.
+                // Refresh one time after deployment so an older URL retained in this
+                // browser cannot override the embedded regional Apps Script endpoint.
+                // Later manual URL changes in Sync Settings remain respected.
+                const urlMigrationDone = localStorage.getItem(SETTINGS_URL_MIGRATION_KEY) === "2026-10-15";
+                if (!urlMigrationDone) {
+                    const refreshed = {
+                        ...(parsed || {}),
+                        googleScriptUrl: DEFAULT_SYNC_SETTINGS.googleScriptUrl,
+                        googleSyncEnabled: true
+                    };
+                    localStorage.setItem(SETTINGS_KEY, JSON.stringify(refreshed));
+                    localStorage.setItem(SETTINGS_URL_MIGRATION_KEY, "2026-10-15");
+                    return { ...DEFAULT_SYNC_SETTINGS, ...refreshed };
+                }
+                if (!savedUrl) return { ...DEFAULT_SYNC_SETTINGS };
                 return {
                     ...DEFAULT_SYNC_SETTINGS,
                     ...(parsed || {}),
-                    googleScriptUrl: savedUrl || DEFAULT_SYNC_SETTINGS.googleScriptUrl,
-                    googleSyncEnabled: savedUrl ? !!parsed?.googleSyncEnabled : true
+                    googleScriptUrl: savedUrl,
+                    googleSyncEnabled: !!parsed?.googleSyncEnabled
                 };
             } catch (e) {
                 return { ...DEFAULT_SYNC_SETTINGS };

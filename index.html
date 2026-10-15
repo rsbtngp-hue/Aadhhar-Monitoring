@@ -345,7 +345,7 @@
           );
         }
 
-        function App({ data = [], updateItem, deleteItem, insertItem, moveItem, onRefresh, isRefreshing, lastSynced, savedMasterOffices = null, onSaveMasterOffices, officeMasterSyncStatus = "Local database ready" }) {
+        function App({ data = [], updateItem, deleteItem, insertItem, moveItem, onRefresh, isRefreshing, lastSynced, savedMasterOffices = null, onSaveMasterOffices, officeMasterSyncStatus = "Local database ready", onAdminStatusChange = null }) {
           const [fromDate, setFromDate] = useState('');
           const [toDate, setToDate] = useState('');
           const [selectedMonth, setSelectedMonth] = useState('ALL');
@@ -355,6 +355,10 @@
           const [activeTab, setActiveTab] = useState('overview'); 
           const [masterAadhaarFilter, setMasterAadhaarFilter] = useState('ALL');
           const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+          // Keep the outer sync toolbar synchronized with the admin login held by this component.
+          useEffect(() => {
+            if (typeof onAdminStatusChange === 'function') onAdminStatusChange(isAdminLoggedIn);
+          }, [isAdminLoggedIn, onAdminStatusChange]);
           const [showAdminLogin, setShowAdminLogin] = useState(false);
           const [showAdminSectionManager, setShowAdminSectionManager] = useState(false);
           const [adminPasswordInput, setAdminPasswordInput] = useState('');
@@ -2931,6 +2935,8 @@
             const [lastLocalSave, setLastLocalSave] = useState(cached?.savedAt || null);
             const [isRefreshing, setIsRefreshing] = useState(false);
             const [syncSettings, setSyncSettings] = useState(readSyncSettings());
+            // The outer toolbar needs the login state from the main dashboard component.
+            const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
             const [showSyncSettings, setShowSyncSettings] = useState(false);
             const [officeMasterPayload, setOfficeMasterPayload] = useState(() => readOfficeMasterCache());
             const [officeMasterApiSupported, setOfficeMasterApiSupported] = useState(null);
@@ -3265,7 +3271,7 @@
                     <App data={data} updateItem={updateItem} deleteItem={deleteItem} insertItem={insertItem} moveItem={moveItem}
                         onRefresh={() => loadFromApi(true)} isRefreshing={isRefreshing} lastSynced={lastSynced}
                         savedMasterOffices={officeMasterPayload?.data || null} onSaveMasterOffices={saveOfficeMasterChanges}
-                        officeMasterSyncStatus={officeMasterSyncStatus} />
+                        officeMasterSyncStatus={officeMasterSyncStatus} onAdminStatusChange={setIsAdminLoggedIn} />
 
                     {showSyncSettings && isAdminLoggedIn && <GoogleSyncSettings settings={syncSettings} onSave={saveSettings} onClose={() => setShowSyncSettings(false)} />}
                 </div>

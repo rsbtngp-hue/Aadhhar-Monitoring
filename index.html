@@ -3178,7 +3178,7 @@
                                 <SettingsIcon /> Data / Sync Settings
                             </button>}
                         </div>
-                        {showSyncSettings && <GoogleSyncSettings settings={syncSettings} onSave={saveSettings} onClose={() => setShowSyncSettings(false)} />}
+                        {showSyncSettings && isAdminLoggedIn && <GoogleSyncSettings settings={syncSettings} onSave={saveSettings} onClose={() => setShowSyncSettings(false)} />}
                     </div>
                 );
             }
@@ -3204,7 +3204,7 @@
                                     <SettingsIcon /> Data / Sync Settings
                                 </button>}
                             </div>
-                            {showSyncSettings && <GoogleSyncSettings settings={syncSettings} onSave={saveSettings} onClose={() => setShowSyncSettings(false)} />}
+                            {showSyncSettings && isAdminLoggedIn && <GoogleSyncSettings settings={syncSettings} onSave={saveSettings} onClose={() => setShowSyncSettings(false)} />}
                         </div>
                     </div>
                 );
@@ -3253,7 +3253,7 @@
                         savedMasterOffices={officeMasterPayload?.data || null} onSaveMasterOffices={saveOfficeMasterChanges}
                         officeMasterSyncStatus={officeMasterSyncStatus} />
 
-                    {showSyncSettings && <GoogleSyncSettings settings={syncSettings} onSave={saveSettings} onClose={() => setShowSyncSettings(false)} />}
+                    {showSyncSettings && isAdminLoggedIn && <GoogleSyncSettings settings={syncSettings} onSave={saveSettings} onClose={() => setShowSyncSettings(false)} />}
                 </div>
             );
         }

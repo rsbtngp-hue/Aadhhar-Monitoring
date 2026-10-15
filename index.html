@@ -1940,7 +1940,7 @@
                               </div>
 
                               {/* Four KPI Cards — Both Annual & Monthly */}
-                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs mb-4">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 text-xs mb-5 items-stretch">
                                 <div className="bg-gradient-to-br from-indigo-500/10 via-indigo-50/70 to-white p-4 rounded-xl border border-indigo-200 shadow-2xs">
                                   <div className="flex items-center justify-between">
                                     <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-900">Annual Targets</span>
@@ -1957,6 +1957,26 @@
                                   </div>
                                   <div className="text-2xl font-extrabold text-purple-800 font-mono mt-2">{calculatedDivisionTargets.summary.totActualTrans.toLocaleString()}</div>
                                   <div className="text-[10px] text-purple-700 mt-2 pt-2 border-t border-purple-200/60">Achievement: <strong>{calculatedDivisionTargets.summary.totAnnualAchievePct}%</strong> &nbsp;•&nbsp; Shortfall: <strong>{calculatedDivisionTargets.summary.totAnnualTotalShortfall.toLocaleString()}</strong></div>
+                                </div>
+
+                                <div className="relative overflow-hidden bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 p-4 rounded-2xl border border-amber-400 shadow-lg shadow-amber-200/60 text-white min-w-0">
+                                  <div className="absolute -right-4 -top-5 opacity-15"><Target className="w-24 h-24" /></div>
+                                  <div className="relative flex items-center justify-between gap-2">
+                                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-white/95">Monthly Targets</span>
+                                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30"><Target className="w-4 h-4 text-white" /></span>
+                                  </div>
+                                  <div className="relative mt-3 text-2xl lg:text-3xl font-black tracking-tight font-mono text-white break-words">{calculatedDivisionTargets.summary.totMonthlyTrans.toLocaleString('en-IN')}</div>
+                                  <div className="relative mt-3 border-t border-white/30 pt-2 text-[10px] text-white/95">Enrol: <strong>{calculatedDivisionTargets.summary.totMonthlyEnrol.toLocaleString('en-IN')}</strong> <span className="mx-1">•</span> Upd: <strong>{calculatedDivisionTargets.summary.totMonthlyUpdate.toLocaleString('en-IN')}</strong></div>
+                                </div>
+
+                                <div className="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 p-4 rounded-2xl border border-emerald-400 shadow-lg shadow-emerald-200/60 text-white min-w-0">
+                                  <div className="absolute -right-4 -top-5 opacity-15"><Award className="w-24 h-24" /></div>
+                                  <div className="relative flex items-center justify-between gap-2">
+                                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-white/95">Monthly Achievement</span>
+                                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30"><Award className="w-4 h-4 text-white" /></span>
+                                  </div>
+                                  <div className="relative mt-3 text-2xl lg:text-3xl font-black tracking-tight font-mono text-white break-words">{calculatedDivisionTargets.summary.currentMonthActualTrans.toLocaleString('en-IN')}</div>
+                                  <div className="relative mt-3 border-t border-white/30 pt-2 text-[10px] text-white/95">Achievement: <strong>{calculatedDivisionTargets.summary.currentMonthAchievePct}%</strong> <span className="mx-1">•</span> Shortfall: <strong>{calculatedDivisionTargets.summary.currentMonthShortfall.toLocaleString('en-IN')}</strong></div>
                                 </div>
                               </div>
 

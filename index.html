@@ -4872,6 +4872,11 @@
                         json = null;
                     }
 
+                    // A zero revision means a deliberate full refresh (manual Full Resync / first sync).
+                    // Bypass any delta-shaped response and read both live sheets directly so missed
+                    // revision metadata cannot make the browser report success without refreshing rows.
+                    if (Number(sinceRev || 0) === 0) json = null;
+
                     if (json && json.mode === "delta" && sinceRev > 0 && hasLocalData) {
                         const mChanges = Array.isArray(json.officeMasterChanges) ? json.officeMasterChanges : [];
                         const dChanges = Array.isArray(json.aadharDailyChanges) ? json.aadharDailyChanges : [];

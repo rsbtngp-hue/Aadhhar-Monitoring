@@ -4462,7 +4462,7 @@
             // Attempt 1: Standard fetch (redirect: follow, no cache:no-store header)
             try {
                 const controller = new AbortController();
-                const timer = setTimeout(() => controller.abort(), 25000);
+                const timer = setTimeout(() => controller.abort(), 15000);
                 const res = await fetch(url, { method: "GET", redirect: "follow", signal: controller.signal });
                 clearTimeout(timer);
                 if (res.ok) {
@@ -4477,7 +4477,7 @@
             }
 
             // Attempt 2: JSONP (<script>) fallback — bypasses file:// Origin:null CORS & redirect blocks
-            const jsonpData = await jsonpRequest(url, 25000);
+            const jsonpData = await jsonpRequest(url, 15000);
             if (jsonpData && jsonpData.status === "error") {
                 throw new Error(jsonpData.message || "Google Apps Script returned error");
             }
@@ -4862,6 +4862,8 @@
                             masterDigest: localMasterDigest || ""
                         });
                     } catch (syncErr) {
+                        // Preserve the primary endpoint error so a failed sync reports the real cause.
+                        var primarySyncError = String(syncErr?.message || syncErr || "sync endpoint failed");
                         json = null;
                     }
 
@@ -4916,7 +4918,10 @@
                         : deriveOfficeMasterFromDailyItems(normalizedDaily);
 
                     if (!normalizedDaily.length && !normalizedMaster.length) {
-                        throw new Error("No records returned from Google Sheets endpoint");
+                        const endpointError = (typeof primarySyncError !== "undefined" && primarySyncError)
+                            ? ` Main sync endpoint: ${primarySyncError}.`
+                            : "";
+                        throw new Error("Google Apps Script returned no usable records from sync/getOffices/getData." + endpointError + " Check the deployed Web App URL, doGet action names, and Apps Script Executions.");
                     }
 
                     const saved = await saveFullSnapshotToIndexedDB(normalizedMaster, normalizedDaily, remoteRev);
@@ -4937,7 +4942,7 @@
                     setLastSyncAttempt(failedAt);
                     setSyncError(detail);
                     setSyncModeLabel("Google Sync Failed • Local DB Active");
-                    setOfficeMasterSyncStatus(`Google sync failed at ${new Date(failedAt).toLocaleString("en-IN")}: ${detail}. Last successful sync time is retained; local data is still available.`);
+                    setOfficeMasterSyncStatus(`Google sync failed at ${new Date(failedAt).toLocaleString("en-IN")}: ${detail}. Last successful sync time is retained; local data is still available. Open Apps Script → Executions to see the server-side error.`);
                     return false;
                 } finally {
                     setLoading(false);

@@ -5336,7 +5336,7 @@
                             </div>
                             <div className="flex items-center gap-2">
                                 {syncSettings.googleSyncEnabled && syncSettings.googleScriptUrl && (
-                                    <button type="button" onClick={() => syncWithGoogleSheets(currentSyncRev, true, data.length > 0 || masterOffices.length > 0, masterOffices.length, data.length, computeMasterDigest(masterOffices))} disabled={isRefreshing} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f9bd05] hover:bg-amber-400 disabled:opacity-60 text-[#4a0813] text-[11px] font-extrabold shadow-xs">
+                                    <button type="button" onClick={() => syncWithGoogleSheets(0, true, data.length > 0 || masterOffices.length > 0, masterOffices.length, data.length, "")} disabled={isRefreshing} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f9bd05] hover:bg-amber-400 disabled:opacity-60 text-[#4a0813] text-[11px] font-extrabold shadow-xs">
                                         <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} /> {isRefreshing ? 'Syncing Delta…' : 'Sync New/Updated'}
                                     </button>
                                 )}

@@ -4417,9 +4417,9 @@
             }
         }
 
-        // Multi-transport GET: tries standard fetch() first (without cache:no-store preflight issues),
-        // then automatically falls back to JSONP (<script>) for file:/// / CORS redirect compatibility.
-        function jsonpRequest(url, timeoutMs = 25000) {
+        // JSONP-first GET avoids waiting for a cross-origin fetch/CORS failure on GitHub Pages.
+        // The Apps Script endpoint supports callback=...; fetch remains a bounded fallback.
+        function jsonpRequest(url, timeoutMs = 12000) {
             return new Promise((resolve, reject) => {
                 const cbName = "__ccsJsonpCb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
                 const script = document.createElement("script");
@@ -4432,7 +4432,7 @@
                     if (settled) return;
                     settled = true;
                     cleanup();
-                    reject(new Error("JSONP request timed out"));
+                    reject(new Error("Google Apps Script JSONP timed out after " + Math.round(timeoutMs / 1000) + "s"));
                 }, timeoutMs);
 
                 window[cbName] = (data) => {
@@ -4447,7 +4447,7 @@
                     settled = true;
                     clearTimeout(timer);
                     cleanup();
-                    reject(new Error("JSONP script load failed"));
+                    reject(new Error("Google Apps Script JSONP script load failed"));
                 };
                 const sep = url.includes("?") ? "&" : "?";
                 script.src = `${url}${sep}callback=${cbName}`;
@@ -4459,29 +4459,36 @@
             const url = buildSyncActionUrl(baseUrl, action, { ...params, _t: Date.now() });
             if (!url) throw new Error("Missing Google Apps Script URL");
 
-            // Attempt 1: Standard fetch (redirect: follow, no cache:no-store header)
+            let jsonpError = null;
+            // Attempt 1: JSONP works across GitHub Pages -> Apps Script without CORS permission.
             try {
-                const controller = new AbortController();
-                const timer = setTimeout(() => controller.abort(), 25000);
-                const res = await fetch(url, { method: "GET", redirect: "follow", signal: controller.signal });
-                clearTimeout(timer);
-                if (res.ok) {
-                    const text = await res.text();
-                    const parsed = JSON.parse(text);
-                    if (parsed && parsed.status !== "error" && parsed.success !== false) {
-                        return parsed;
-                    }
+                const jsonpData = await jsonpRequest(url, 12000);
+                if (jsonpData && jsonpData.status === "error") {
+                    throw new Error(jsonpData.message || "Google Apps Script returned error");
                 }
-            } catch (fetchErr) {
-                // Fall through to JSONP fallback
+                if (jsonpData !== undefined && jsonpData !== null) return jsonpData;
+                jsonpError = new Error("Google Apps Script returned an empty JSONP response");
+            } catch (err) {
+                jsonpError = err;
             }
 
-            // Attempt 2: JSONP (<script>) fallback — bypasses file:// Origin:null CORS & redirect blocks
-            const jsonpData = await jsonpRequest(url, 25000);
-            if (jsonpData && jsonpData.status === "error") {
-                throw new Error(jsonpData.message || "Google Apps Script returned error");
+            // Attempt 2: bounded fetch fallback. Do not let a stalled cross-origin request hang sync.
+            const controller = new AbortController();
+            let timer = null;
+            try {
+                timer = setTimeout(() => controller.abort(), 8000);
+                const res = await fetch(url, { method: "GET", redirect: "follow", signal: controller.signal });
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                const text = await res.text();
+                const parsed = JSON.parse(text);
+                if (parsed && parsed.status !== "error" && parsed.success !== false) return parsed;
+                throw new Error(parsed?.message || "Google Apps Script returned an unsuccessful response");
+            } catch (fetchErr) {
+                const detail = String(jsonpError?.message || fetchErr?.message || "Unknown network error");
+                throw new Error("Google Sheets sync request failed: " + detail);
+            } finally {
+                if (timer) clearTimeout(timer);
             }
-            return jsonpData;
         }
 
         // Multi-transport POST/Write: tries standard POST -> GET/JSONP write fallback -> no-cors POST fallback

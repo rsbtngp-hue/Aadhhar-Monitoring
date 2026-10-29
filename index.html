@@ -532,9 +532,9 @@
           const [underConstructionModal, setUnderConstructionModal] = useState(null);
 
           const UNDER_CONSTRUCTION_MODULES = {
-            mailOps: { key: 'mailOps', title: 'Mail Operations — Coming Soon' },
-            parcel: { key: 'parcel', title: 'Parcel Logistics — Coming Soon' },
-            irgb: { key: 'irgb', title: 'IR & GB / DNK — Coming Soon' },
+            mailOps: { key: 'mailOps', title: 'Mail Operations' },
+            parcel: { key: 'parcel', title: 'Parcel Logistics' },
+            irgb: { key: 'irgb', title: 'IR & GB / DNK' },
             bnpl: { key: 'bnpl', title: 'BNPL / Marketing Executive — Coming Soon' }
           };
 
@@ -2152,29 +2152,26 @@
                     <button
                       type="button"
                       onClick={() => handleOpenUnderConstruction('mailOps')}
-                      title="Mail Operations (Under Construction • Coming Soon)"
+                      title="Mail Operations — Open BD Dashboard"
                       className={`dop-gold-nav-link ${activeTab === 'mailOps' ? 'active' : ''}`}
                     >
                       <span>Mail Operations</span>
-                      <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full bg-amber-300 text-amber-950 ml-0.5">Soon</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleOpenUnderConstruction('parcel')}
-                      title="Parcel Operations (Under Construction • Coming Soon)"
+                      title="Parcel Logistics — Open BD Dashboard"
                       className={`dop-gold-nav-link ${activeTab === 'parcel' ? 'active' : ''}`}
                     >
                       <span>Parcel</span>
-                      <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full bg-amber-300 text-amber-950 ml-0.5">Soon</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleOpenUnderConstruction('irgb')}
-                      title="IR GB Operations (Under Construction • Coming Soon)"
+                      title="IR & GB / DNK — Open BD Dashboard"
                       className={`dop-gold-nav-link ${activeTab === 'irgb' ? 'active' : ''}`}
                     >
                       <span>IR GB</span>
-                      <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full bg-amber-300 text-amber-950 ml-0.5">Soon</span>
                     </button>
                     <button
                       type="button"
@@ -2384,13 +2381,12 @@
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="text-lg font-extrabold text-white leading-snug">Mail operations</span>
-                          <span className="text-[10px] font-extrabold bg-amber-400 text-amber-950 px-2 py-0.5 rounded-full shadow-2xs">🚧 Coming Soon</span>
                         </div>
                         <div className="text-xs font-semibold text-white/90 mt-1">
                           Speed Post, Registered Mail & Delivery Performance • 9 Divisions
                         </div>
                         <div className="mt-2 inline-flex items-center gap-1 text-[11px] font-extrabold text-amber-200 bg-black/20 px-2.5 py-0.5 rounded-full">
-                          <span>Under Construction • Click to Inspect</span>
+                          <span>Open Section Dashboard</span>
                           <span>→</span>
                         </div>
                       </div>
@@ -2411,13 +2407,12 @@
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="text-lg font-extrabold text-white leading-snug">Parcle</span>
-                          <span className="text-[10px] font-extrabold bg-amber-400 text-amber-950 px-2 py-0.5 rounded-full shadow-2xs">🚧 Coming Soon</span>
                         </div>
                         <div className="text-xs font-semibold text-white/90 mt-1">
                           India Post Parcel, Express Parcel & E-Commerce Hub Monitoring
                         </div>
                         <div className="mt-2 inline-flex items-center gap-1 text-[11px] font-extrabold text-amber-200 bg-black/20 px-2.5 py-0.5 rounded-full">
-                          <span>Under Construction • Click to Inspect</span>
+                          <span>Open Section Dashboard</span>
                           <span>→</span>
                         </div>
                       </div>
@@ -2439,13 +2434,12 @@
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="text-lg font-extrabold text-white leading-snug">IR GB</span>
-                          <span className="text-[10px] font-extrabold bg-amber-400 text-amber-950 px-2 py-0.5 rounded-full shadow-2xs">🚧 Coming Soon</span>
                         </div>
                         <div className="text-xs font-semibold text-white/90 mt-1">
                           International Relations & Global Business • Dak Ghar Niryat Kendra
                         </div>
                         <div className="mt-2 inline-flex items-center gap-1 text-[11px] font-extrabold text-amber-200 bg-black/20 px-2.5 py-0.5 rounded-full">
-                          <span>Under Construction • Click to Inspect</span>
+                          <span>Open Section Dashboard</span>
                           <span>→</span>
                         </div>
                       </div>

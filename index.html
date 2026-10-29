@@ -539,6 +539,11 @@
           };
 
           const handleOpenUnderConstruction = (modKey) => {
+            // Route these header modules to the BD dashboard.
+            if (['mailOps', 'parcel', 'irgb'].includes(modKey)) {
+              window.location.href = 'https://ronagpur.com/BD/';
+              return;
+            }
             const mod = UNDER_CONSTRUCTION_MODULES[modKey];
             if (mod) {
               setUnderConstructionModal(mod);
